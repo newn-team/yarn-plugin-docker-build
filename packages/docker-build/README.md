@@ -47,11 +47,15 @@ CMD yarn workspace @foo/bar start
 
 ### `yarn docker build`
 
-This command will build a efficient Docker image which only contains production dependencies for the specified workspace.
+This command will build a efficient Docker image which only contains production
+dependencies for the specified workspace.
 
-You have to create a `Dockerfile` in your workspace or your project. You can also specify the path to Dockerfile using the `-f, --file` option.
+You have to create a `Dockerfile` in your workspace or your project. You can
+also specify the path to Dockerfile using the `-f, --file` option.
 
-Additional arguments can be passed to `docker build` directly, please check the Docker docs for more info: https://docs.docker.com/engine/reference/commandline/build/
+Additional arguments can be passed to `docker build` directly, please check the
+Docker docs for more info:
+https://docs.docker.com/engine/reference/commandline/build/
 
 Example:
 
@@ -67,7 +71,9 @@ Path to `Dockerfile`. Default to the Dockerfile in the workspace or the project.
 
 #### `--copy`
 
-Copy additional files to a Docker image. This is useful for secret keys or configuration files. The files will be copied to `manifests` folder. The path can be either a path relative to the Dockerfile or an absolute path.
+Copy additional files to a Docker image. This is useful for secret keys or
+configuration files. The files will be copied to `manifests` folder. The path
+can be either a path relative to the Dockerfile or an absolute path.
 
 #### `--production`
 
@@ -75,4 +81,5 @@ Install production dependencies only.
 
 #### `--buildkit`
 
-Build the Docker image using Docker BuildKit, please check the Docker docs for more info: https://docs.docker.com/engine/reference/commandline/buildx_build/
+Build the Docker image using Docker BuildKit, please check the Docker docs for
+more info: https://docs.docker.com/engine/reference/commandline/buildx_build/

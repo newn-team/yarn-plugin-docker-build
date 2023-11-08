@@ -1,14 +1,14 @@
-import { PortablePath, xfs, ppath, toFilename } from '@yarnpkg/fslib';
-import { Report } from '@yarnpkg/core';
+import { Filename, PortablePath, ppath, xfs } from '@yarnpkg/fslib'
+import { Report } from '@yarnpkg/core'
 
 function resolvePath(baseDir: PortablePath, inputPath: string): PortablePath {
-  const path = toFilename(inputPath);
+  const path = inputPath as Filename
 
   if (ppath.isAbsolute(path)) {
-    return ppath.relative(baseDir, path);
+    return ppath.relative(baseDir, path)
   }
 
-  return path;
+  return path
 }
 
 export default async function copyAdditional({
@@ -17,19 +17,19 @@ export default async function copyAdditional({
   dockerFilePath,
   report,
 }: {
-  destination: PortablePath;
-  files: string[];
-  dockerFilePath: PortablePath;
-  report: Report;
+  destination: PortablePath
+  files: string[]
+  dockerFilePath: PortablePath
+  report: Report
 }): Promise<void> {
-  const baseDir = ppath.dirname(dockerFilePath);
+  const baseDir = ppath.dirname(dockerFilePath)
 
   for (const file of files) {
-    const path = resolvePath(baseDir, file);
-    const src = ppath.join(baseDir, path);
-    const dest = ppath.join(destination, path);
+    const path = resolvePath(baseDir, file)
+    const src = ppath.join(baseDir, path)
+    const dest = ppath.join(destination, path)
 
-    report.reportInfo(null, path);
-    await xfs.copyPromise(dest, src);
+    report.reportInfo(null, path)
+    await xfs.copyPromise(dest, src)
   }
 }

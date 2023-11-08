@@ -1,21 +1,25 @@
-import { PortablePath, xfs, ppath } from '@yarnpkg/fslib';
-import { Project, Report } from '@yarnpkg/core';
+import { PortablePath, ppath, xfs } from '@yarnpkg/fslib'
+import { Project, Report } from '@yarnpkg/core'
 
 export default async function copyYarnRelease({
   destination,
   project,
   report,
 }: {
-  destination: PortablePath;
-  project: Project;
-  report: Report;
+  destination: PortablePath
+  project: Project
+  report: Report
 }): Promise<void> {
-  const src = project.configuration.get('yarnPath');
-  const path = ppath.relative(project.cwd, src);
-  const dest = ppath.join(destination, path);
+  const src = project.configuration.get('yarnPath')
+  if (!src) {
+    return
+  }
 
-  report.reportInfo(null, path);
+  const path = ppath.relative(project.cwd, src)
+  const dest = ppath.join(destination, path)
+
+  report.reportInfo(null, path)
   await xfs.copyPromise(dest, src, {
     overwrite: true,
-  });
+  })
 }

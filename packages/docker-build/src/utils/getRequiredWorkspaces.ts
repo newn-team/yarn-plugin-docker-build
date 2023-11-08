@@ -1,4 +1,4 @@
-import { Workspace, Project, Manifest } from '@yarnpkg/core';
+import { Manifest, Project, Workspace } from '@yarnpkg/core'
 
 export default function getRequiredWorkspaces({
   project,
@@ -6,22 +6,22 @@ export default function getRequiredWorkspaces({
   production = false,
   scopes = production ? ['dependencies'] : Manifest.hardDependencies,
 }: {
-  project: Project;
-  workspaces: Workspace[];
-  scopes?: string[];
-  production?: boolean;
+  project: Project
+  workspaces: Workspace[]
+  scopes?: string[]
+  production?: boolean
 }): Set<Workspace> {
-  const requiredWorkspaces = new Set([...workspaces]);
+  const requiredWorkspaces = new Set([...workspaces])
 
   for (const ws of requiredWorkspaces) {
     for (const scope of scopes) {
-      const deps = ws.manifest.getForScope(scope).values();
+      const deps = ws.manifest.getForScope(scope).values()
 
       for (const dep of deps) {
-        const workspace = project.tryWorkspaceByDescriptor(dep);
+        const workspace = project.tryWorkspaceByDescriptor(dep)
 
         if (workspace) {
-          requiredWorkspaces.add(workspace);
+          requiredWorkspaces.add(workspace)
         }
       }
     }
@@ -30,14 +30,14 @@ export default function getRequiredWorkspaces({
   for (const ws of project.workspaces) {
     if (requiredWorkspaces.has(ws)) {
       if (production) {
-        ws.manifest.devDependencies.clear();
+        ws.manifest.devDependencies.clear()
       }
     } else {
-      ws.manifest.dependencies.clear();
-      ws.manifest.devDependencies.clear();
-      ws.manifest.peerDependencies.clear();
+      ws.manifest.dependencies.clear()
+      ws.manifest.devDependencies.clear()
+      ws.manifest.peerDependencies.clear()
     }
   }
 
-  return requiredWorkspaces;
+  return requiredWorkspaces
 }

@@ -1,20 +1,22 @@
 {
-  "name": "@dcard/yarn-plugin-docker-build",
+  "name": "@newn-team/yarn-plugin-docker-build",
   "version": "0.0.1",
   "main": "src/index.ts",
   "scripts": {
-    "build": "builder build plugin"
+    "build": "builder build plugin",
+    "lint": "deno lint",
+    "fmt": "deno fmt"
   },
   "dependencies": {
-    "clipanion": "^2.4.4"
+    "clipanion": "3.2.1"
   },
   "devDependencies": {
-    "@yarnpkg/builder": "^2.1.3",
-    "@yarnpkg/cli": "^2.4.1",
-    "@yarnpkg/core": "^2.4.0",
-    "@yarnpkg/fslib": "^2.4.0",
-    "@yarnpkg/plugin-pack": "^2.2.3",
-    "@yarnpkg/plugin-patch": "^2.1.2",
-    "typescript": "^4.0.2"
+    "@types/jscodeshift": "^0",
+    "@yarnpkg/builder": "4.0.0",
+    "@yarnpkg/cli": "4.0.1",
+    "@yarnpkg/core": "4.0.1",
+    "@yarnpkg/fslib": "3.0.1",
+    "@yarnpkg/plugin-pack": "4.0.0",
+    "@yarnpkg/plugin-patch": "4.0.0"
   }
 }

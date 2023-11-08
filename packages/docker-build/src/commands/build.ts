@@ -1,48 +1,37 @@
-import { BaseCommand } from '@yarnpkg/cli';
-import { Command } from 'clipanion';
-import {
-  Configuration,
-  Project,
-  Cache,
-  structUtils,
-  StreamReport,
-  execUtils,
-} from '@yarnpkg/core';
-import { patchUtils } from '@yarnpkg/plugin-patch';
-import getDockerFilePath from '../utils/getDockerFilePath';
-import getRequiredWorkspaces from '../utils/getRequiredWorkspaces';
-import copyRcFile from '../utils/copyRcFile';
-import { toFilename, ppath, xfs } from '@yarnpkg/fslib';
-import copyPlugins from '../utils/copyPlugins';
-import copyYarnRelease from '../utils/copyYarnRelease';
-import copyManifests from '../utils/copyManifests';
-import copyCacheMarkedFiles from '../utils/copyCacheMarkedFiles';
-import generateLockfile from '../utils/generateLockfile';
-import packWorkspace from '../utils/packWorkspace';
-import copyAdditional from '../utils/copyAdditional';
-import copyProtocolFiles from '../utils/copyProtocolFiles';
-import { parseSpec } from '../utils/execUtils';
+import { BaseCommand } from '@yarnpkg/cli'
+import { Command, Option } from 'clipanion'
+import { Cache, Configuration, execUtils, Project, StreamReport, structUtils } from '@yarnpkg/core'
+import { patchUtils } from '@yarnpkg/plugin-patch'
+import getDockerFilePath from '../utils/getDockerFilePath'
+import getRequiredWorkspaces from '../utils/getRequiredWorkspaces'
+import copyRcFile from '../utils/copyRcFile'
+import { ppath, xfs } from '@yarnpkg/fslib'
+import copyPlugins from '../utils/copyPlugins'
+import copyYarnRelease from '../utils/copyYarnRelease'
+import copyManifests from '../utils/copyManifests'
+import copyCacheMarkedFiles from '../utils/copyCacheMarkedFiles'
+import generateLockfile from '../utils/generateLockfile'
+import packWorkspace from '../utils/packWorkspace'
+import copyAdditional from '../utils/copyAdditional'
+import copyProtocolFiles from '../utils/copyProtocolFiles'
+import { parseSpec } from '../utils/execUtils'
 
 export default class DockerBuildCommand extends BaseCommand {
-  @Command.String()
-  public workspaceName!: string;
+  static paths = [['docker', 'build']]
 
-  @Command.Proxy()
-  public args: string[] = [];
+  workspaceName = Option.String()
 
-  @Command.String('-f,--file')
-  public dockerFilePath?: string;
+  args = Option.Proxy()
 
-  @Command.Array('--copy')
-  public copyFiles?: string[];
+  dockerFilePath = Option.String('-f,--file')
 
-  @Command.Boolean('--production')
-  public production?: boolean;
+  copyFiles = Option.Array('--copy')
 
-  @Command.Boolean('--buildkit')
-  public buildKit?: boolean;
+  production = Option.Boolean('--production')
 
-  public static usage = Command.Usage({
+  buildKit = Option.Boolean('--buildkit')
+
+  static usage = Command.Usage({
     category: 'Docker-related commands',
     description: 'Build a Docker image for a workspace',
     details: `
@@ -73,32 +62,31 @@ export default class DockerBuildCommand extends BaseCommand {
         'yarn docker build --buildkit @foo/bar',
       ],
     ],
-  });
+  })
 
-  @Command.Path('docker', 'build')
   public async execute(): Promise<number> {
     const configuration = await Configuration.find(
       this.context.cwd,
       this.context.plugins,
-    );
-    const { project } = await Project.find(configuration, this.context.cwd);
+    )
+    const { project } = await Project.find(configuration, this.context.cwd)
 
     const workspace = project.getWorkspaceByIdent(
       structUtils.parseIdent(this.workspaceName),
-    );
+    )
 
     const requiredWorkspaces = getRequiredWorkspaces({
       project,
       workspaces: [workspace],
       production: this.production,
-    });
+    })
 
     const dockerFilePath = await getDockerFilePath(
       workspace,
       this.dockerFilePath,
-    );
+    )
 
-    const cache = await Cache.find(configuration);
+    const cache = await Cache.find(configuration)
 
     const report = await StreamReport.start(
       {
@@ -108,41 +96,41 @@ export default class DockerBuildCommand extends BaseCommand {
       },
       async (report) => {
         await report.startTimerPromise('Resolution Step', async () => {
-          await project.resolveEverything({ report, cache });
-        });
+          await project.resolveEverything({ report, cache })
+        })
 
         await report.startTimerPromise('Fetch Step', async () => {
-          await project.fetchEverything({ report, cache });
-        });
+          await project.fetchEverything({ report, cache })
+        })
 
         await xfs.mktempPromise(async (cwd) => {
-          const manifestDir = ppath.join(cwd, toFilename('manifests'));
-          const packDir = ppath.join(cwd, toFilename('packs'));
+          const manifestDir = ppath.join(cwd, 'manifests')
+          const packDir = ppath.join(cwd, 'packs')
 
           await report.startTimerPromise('Copy files', async () => {
             await copyRcFile({
               destination: manifestDir,
               project,
               report,
-            });
+            })
 
             await copyPlugins({
               destination: manifestDir,
               project,
               report,
-            });
+            })
 
             await copyYarnRelease({
               destination: manifestDir,
               project,
               report,
-            });
+            })
 
             await copyManifests({
               destination: manifestDir,
               workspaces: project.workspaces,
               report,
-            });
+            })
 
             await copyProtocolFiles({
               destination: manifestDir,
@@ -150,35 +138,35 @@ export default class DockerBuildCommand extends BaseCommand {
               project,
               parseDescriptor: (descriptor) => {
                 if (descriptor.range.startsWith('exec:')) {
-                  const parsed = parseSpec(descriptor.range);
-                  if (!parsed || !parsed.parentLocator) return;
+                  const parsed = parseSpec(descriptor.range)
+                  if (!parsed || !parsed.parentLocator) return
                   return {
                     parentLocator: parsed.parentLocator,
                     paths: [parsed.path],
-                  };
+                  }
                 } else if (descriptor.range.startsWith('patch:')) {
                   const {
                     parentLocator,
                     patchPaths: paths,
-                  } = patchUtils.parseDescriptor(descriptor);
-                  if (!parentLocator) return;
-                  return { parentLocator, paths };
+                  } = patchUtils.parseDescriptor(descriptor)
+                  if (!parentLocator) return
+                  return { parentLocator, paths }
                 }
               },
-            });
+            })
 
             await copyCacheMarkedFiles({
               destination: manifestDir,
               project,
               cache,
               report,
-            });
+            })
 
             await generateLockfile({
               destination: manifestDir,
               project,
               report,
-            });
+            })
 
             if (this.copyFiles && this.copyFiles.length) {
               await copyAdditional({
@@ -186,14 +174,12 @@ export default class DockerBuildCommand extends BaseCommand {
                 files: this.copyFiles,
                 dockerFilePath,
                 report,
-              });
+              })
             }
-          });
+          })
 
           for (const ws of requiredWorkspaces) {
-            const name = ws.manifest.name
-              ? structUtils.stringifyIdent(ws.manifest.name)
-              : '';
+            const name = ws.manifest.name ? structUtils.stringifyIdent(ws.manifest.name) : ''
 
             await report.startTimerPromise(
               `Pack workspace ${name}`,
@@ -202,12 +188,12 @@ export default class DockerBuildCommand extends BaseCommand {
                   workspace: ws,
                   report,
                   destination: packDir,
-                });
+                })
               },
-            );
+            )
           }
 
-          const buildCommand = this.buildKit ? ['buildx', 'build'] : ['build'];
+          const buildCommand = this.buildKit ? ['buildx', 'build'] : ['build']
 
           await execUtils.pipevp(
             'docker',
@@ -219,11 +205,11 @@ export default class DockerBuildCommand extends BaseCommand {
               stdout: this.context.stdout,
               stderr: this.context.stderr,
             },
-          );
-        });
+          )
+        })
       },
-    );
+    )
 
-    return report.exitCode();
+    return report.exitCode()
   }
 }
